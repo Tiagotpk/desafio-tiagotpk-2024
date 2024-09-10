@@ -8,21 +8,22 @@ class RecintosZoo {
   }
 
   analisaRecintos(animal, quantidade) {
+    // Verificando se o animal é válido
     if (!this.animais[animal.toUpperCase()]) {
       return { erro: "Animal inválido" };
     }
-    
+    // Verificando se a quantidade é válida
     if (quantidade <= 0 || isNaN(quantidade)) {
       return { erro: "Quantidade inválida" };
     }
-  
+
     const dadosAnimal = this.animais[animal.toUpperCase()];
     const recintosViaveis = [];
-  
+
     for (const recinto of this.recintos) {
       console.log(`Analisando Recinto ${recinto.numero} (${recinto.bioma})`);
-  
-      // Verifica se o bioma é compatível
+
+      // Verificação de bioma compatível
       if (
         !dadosAnimal.biomas.includes(recinto.bioma) &&
         !(
@@ -35,82 +36,48 @@ class RecintosZoo {
         );
         continue;
       }
-  
-      // Calcula o espaço usado atualmente no recinto
+
+      // Calculando o espaço atual do recinto
       let espacoUsado = recinto.animais.reduce(
         (total, a) => total + a.quantidade * a.tamanho,
         0
       );
       console.log(`Espaço usado no Recinto ${recinto.numero}: ${espacoUsado}`);
-  
-      // Verifica se o recinto já contém animais
-      const temOutrosAnimais = recinto.animais.length > 0;
-  
-      // Verifica regra específica para o macaco (não pode estar sozinho)
-      if (animal.toUpperCase() === "MACACO" && !temOutrosAnimais) {
-        if (quantidade === 2) {
-          console.log(
-            `Recinto ${recinto.numero} aceito por estar vazio (2 macacos podem ficar juntos).`
-          );
-        } else {
-          console.log(
-            `Recinto ${recinto.numero} descartado por estar vazio (macacos não podem ficar sozinhos).`
-          );
-          continue;
-        }
-      }
-  
-      // Verifica se o recinto contém animais de outras espécies
+
+      // Verificando se o recinto contém animais de outras espécies
       const temOutraEspecie = recinto.animais.some(
         (a) => a.especie !== animal.toLowerCase()
       );
+
+      // Espaço extra para coexistência
       if (temOutraEspecie) {
-        espacoUsado += 1; // Espaço extra para coexistência de espécies
+        espacoUsado += 1;
         console.log(
           `Espaço extra adicionado no Recinto ${recinto.numero} por coexistência de espécies.`
         );
       }
-  
+
+      // Calculando o espaço restante
       const espacoRestante = recinto.tamanhoTotal - espacoUsado;
-      const espacoNecessario = dadosAnimal.tamanho * quantidade;
       console.log(
-        `Espaço restante no Recinto ${recinto.numero}: ${espacoRestante}, espaço necessário: ${espacoNecessario}`
+        `Espaço restante no Recinto ${recinto.numero}: ${espacoRestante}`
       );
-  
-      // Verifica regras para carnívoros
-      const algumCarnivoro = recinto.animais.some(
-        (a) => a.tipo === "carnivoro"
-      );
-      if (algumCarnivoro && dadosAnimal.tipo !== "carnivoro") {
-        console.log(`Recinto ${recinto.numero} descartado por ter carnívoros.`);
-        continue; // Carnívoro só pode habitar com a própria espécie
-      }
-      if (
-        dadosAnimal.tipo === "carnivoro" &&
-        algumCarnivoro &&
-        recinto.animais[0].especie !== animal.toLowerCase()
-      ) {
-        console.log(
-          `Recinto ${recinto.numero} descartado por não ser viável para múltiplos carnívoros.`
-        );
-        continue; // Carnívoros diferentes
-      }
-  
-      // Verifica se o espaço é suficiente
+
+      // Definindo o espaço necessário
+      const espacoNecessario = dadosAnimal.tamanho * quantidade;
+
+      // Verificando se o espaço restante é suficiente para o animal
       if (espacoNecessario <= espacoRestante) {
-        console.log(`Recinto ${recinto.numero} é viável.`);
+        const espacoLivreAtualizado = espacoRestante - espacoNecessario;
         recintosViaveis.push(
-          `Recinto ${recinto.numero} (espaço livre: ${
-            espacoRestante - espacoNecessario
-          } total: ${recinto.tamanhoTotal})`
+          `Recinto ${recinto.numero} (espaço livre: ${espacoLivreAtualizado} total: ${recinto.tamanhoTotal})`
         );
+        console.log(`Recinto ${recinto.numero} aceito para ${animal}.`);
       } else {
-        console.log(
-          `Recinto ${recinto.numero} descartado por espaço insuficiente.`
-        );
+        console.log(`Recinto ${recinto.numero} não tem espaço suficiente.`);
       }
     }
-  
+
     if (recintosViaveis.length > 0) {
       console.log(`Recintos viáveis encontrados: ${recintosViaveis}`);
       return { recintosViaveis };
@@ -119,7 +86,6 @@ class RecintosZoo {
       return { erro: "Não há recinto viável" };
     }
   }
-  
 }
 
 export { RecintosZoo as RecintosZoo };
